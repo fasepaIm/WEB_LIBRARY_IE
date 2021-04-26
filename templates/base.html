@@ -1,0 +1,47 @@
+<!doctype html>
+<html lang="en">
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
+    <link rel="stylesheet"
+          href="https://stackpath.bootstrapcdn.com/bootstrap/4.4.1/css/bootstrap.min.css"
+          integrity="sha384-Vkoo8x4CGsO3+Hhxv8T/Q5PaXtkKtu6ug5TOeNV6gBiFeWPGFN9MuhOf23Q9Ifjh"
+          crossorigin="anonymous">
+    <link rel="stylesheet" href="/static/css/style.css">
+    {% block title %}{% endblock %}
+    <script src="https://lidrekon.ru/slep/js/jquery.js"></script>
+    <script src="https://lidrekon.ru/slep/js/uhpv-full.min.js"></script>
+</head>
+<body>
+<header>
+    <a id="specialButton" href="#"><img src="https://lidrekon.ru/images/special.png" alt="ВЕРСИЯ ДЛЯ СЛАБОВИДЯЩИХ" title="ВЕРСИЯ ДЛЯ СЛАБОВИДЯЩИХ" /></a>
+    <nav class="navbar navbar-dark bg-dark">
+        <font class="navbar-form navbar-left">
+            <a class="navbar-brand" href="/">Главная</a>
+            <a class="navbar-brand" href="/catalog">Каталог</a>
+            <a class="navbar-brand" href="/developers">О разработчиках</a>
+        </font>
+        {% if current_user.is_authenticated %}
+            <p1>
+            {% if current_user.root %}
+                <a class="btn btn-outline-danger" href="/upload_book">Добавить книгу</a>
+            {% endif %}
+            <a class="btn btn-outline-danger" href="/logout"> Выйти</a>
+            </p1>
+        {% else %}
+            <p1>
+                <a class="btn btn-outline-danger" href="/register">Зарегистрироваться</a>
+                <a class="btn btn-outline-danger" href="/login">Войти</a>
+            </p1>
+        {% endif %}
+    </nav>
+</header>
+<!-- Begin page content -->
+<main role="main" class="container">
+    {% block content %}{% endblock %}
+</main>
+<footer class="container">
+    <p>© 2021 WEB LIBRARY IE PROJECT, Inc.</p>
+  </footer>
+</body>
+</html>

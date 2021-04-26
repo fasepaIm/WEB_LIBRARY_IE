@@ -1,0 +1,16 @@
+{% extends "base.html" %} 
+
+{% block title %}
+<title>{{ title }}</title>
+{% endblock %}
+
+{% block content %}
+<link rel="stylesheet" href="/static/css/reading_page_style.css">
+
+<body bgcolor="#f1e9d1">
+  <main>
+    <pre style="white-space: pre-wrap"> <font size="3" face="Arial">{{books_text}}</font></pre>
+  </main>
+</body>
+
+{% endblock %}
