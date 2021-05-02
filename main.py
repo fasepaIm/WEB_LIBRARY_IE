@@ -16,16 +16,14 @@ from pathlib import Path
 from data import __all_models
 
 
-app = Flask(__name__)
-app.config['SECRET_KEY'] = 'yandexlyceum_secret_key'
-login_manager = LoginManager()
-login_manager.init_app(app)
-
-
-UPLOAD_FOLDER = '/home/legend/test_upload/data/files'
+UPLOAD_FOLDER = os.path.join(os.path.abspath(os.path.dirname(__file__)), f'data/files/')
 ALLOWED_EXTENSIONS = set(['txt', 'png', 'jpg', 'jpeg'])
 
+app = Flask(__name__)
+app.config['SECRET_KEY'] = 'yandexlyceum_secret_key'
 app.config['UPLOAD_FOLDER'] = UPLOAD_FOLDER
+login_manager = LoginManager()
+login_manager.init_app(app)
 
 
 def allowed_file(filename):
@@ -136,6 +134,16 @@ def upload_book():
     return render_template('upload_book.html', title='Добавление книги', form=form)
 
 
+@app.route('/delete_book/<book_name>', methods=['GET', 'POST'])
+def delete_book(book_name):
+    y = yadisk.YaDisk(token='AQAAAAAer1ioAAcUyU5d7ZA8dkJhpuOWMzdNQAc')
+    y.remove(f"{book_name}.txt", permanently=True)
+    db_sess = db_session.create_session()
+    db_sess.query(Book).filter(Book.name == book_name).delete()
+    db_sess.commit()
+    return redirect('/catalog')
+
+
 @app.route('/login', methods=['GET', 'POST'])
 def login():
     form = LoginForm()
@@ -166,7 +174,7 @@ def logout():
 
 def main():
     db_session.global_init("db/blogs.db")
-    app.run(debug=True)
+    app.run()
 
 
 if __name__ == '__main__':
