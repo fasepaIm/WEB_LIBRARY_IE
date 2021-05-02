@@ -3,9 +3,9 @@ import json
 import base64
 import yadisk
 import os
-from flask import Flask, render_template
+from flask import Flask, render_template, request
 from flask_login import LoginManager, login_user, login_required, logout_user
-from werkzeug.utils import redirect
+from werkzeug.utils import redirect, secure_filename
 from data import db_session
 from data.loginform import LoginForm
 from data.users import User
@@ -20,6 +20,17 @@ app = Flask(__name__)
 app.config['SECRET_KEY'] = 'yandexlyceum_secret_key'
 login_manager = LoginManager()
 login_manager.init_app(app)
+
+
+UPLOAD_FOLDER = '/home/legend/test_upload/data/files'
+ALLOWED_EXTENSIONS = set(['txt', 'png', 'jpg', 'jpeg'])
+
+app.config['UPLOAD_FOLDER'] = UPLOAD_FOLDER
+
+
+def allowed_file(filename):
+    return '.' in filename and \
+           filename.rsplit('.', 1)[1] in ALLOWED_EXTENSIONS
 
 
 @app.route('/')
@@ -88,8 +99,20 @@ def upload_book():
     db_sess = db_session.create_session()
     form = UploadBookForm()
     if form.validate_on_submit():
-        y.upload(f'data/files/{form.book_file.data}', f'{form.bookname.data}.txt')
-        with open(f'data/files/img/{form.cover_image.data}', 'rb') as file:
+        cover_image_file = request.files['cover_image']
+        if cover_image_file and allowed_file(cover_image_file.filename):
+            filename = secure_filename(cover_image_file.filename)
+            cover_filename = f"cover.{filename.split('.')[-1]}"
+            cover_image_file.save(os.path.join(app.config['UPLOAD_FOLDER'], cover_filename))
+
+        book_file = request.files['book_file']
+        if cover_image_file and allowed_file(book_file.filename):
+            #filename = secure_filename(book_file.filename)
+            book_filename = 'book.txt'
+            book_file.save(os.path.join(app.config['UPLOAD_FOLDER'], book_filename))
+
+        y.upload(os.path.join(os.path.abspath(os.path.dirname(__file__)), f'data/files/{book_filename}'), f'{form.bookname.data}.txt')
+        with open(os.path.join(os.path.abspath(os.path.dirname(__file__)), f'data/files/{cover_filename}'), 'rb') as file:
             file = file.read()
         published = requests.put(f'https://cloud-api.yandex.net/v1/disk/resources/publish/?path={form.bookname.data}.txt',
                                  headers={'Authorization': 'OAuth AQAAAAAer1ioAAcUyU5d7ZA8dkJhpuOWMzdNQAc'})
@@ -104,8 +127,8 @@ def upload_book():
         db_sess.add(book)
         db_sess.commit()
 
-        file_path = os.path.join(os.path.abspath(os.path.dirname(__file__)), f'data/files/{form.book_file.data}')
-        img_path = os.path.join(os.path.abspath(os.path.dirname(__file__)), f'data/files/img/{form.cover_image.data}')
+        file_path = os.path.join(os.path.abspath(os.path.dirname(__file__)), f'data/files/{book_filename}')
+        img_path = os.path.join(os.path.abspath(os.path.dirname(__file__)), f'data/files/{cover_filename}')
         os.remove(file_path)
         os.remove(img_path)
 
@@ -143,7 +166,7 @@ def logout():
 
 def main():
     db_session.global_init("db/blogs.db")
-    app.run()
+    app.run(debug=True)
 
 
 if __name__ == '__main__':
